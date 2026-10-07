@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>TCP Handshake & Failure Analysis System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <span class="icon">🔌</span>
+            <h1>TCP Connection Problem Simulator & Failure Analyzer</h1>
+        </div>
+        <div class="badge-tag">Computer Networks Mini Project</div>
+    </header>
+
+    <main class="container">
+
+        <!-- CONTROLS & SCENARIO SELECTION -->
+        <section class="card control-panel">
+            <div class="panel-header">
+                <h2>1. Simulation Control Panel</h2>
+                <p>Select a TCP scenario to observe packet transmission behavior, failure modes, and diagnostics.</p>
+            </div>
+            
+            <div class="controls-row">
+                <div class="form-group">
+                    <label for="scenarioSelect">Select TCP Scenario:</label>
+                    <select id="scenarioSelect" class="dropdown">
+                        {% for key, name in scenarios.items() %}
+                            <option value="{{ key }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="runBtn" class="btn btn-primary">
+                        <span>▶</span> Run Simulation
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <span>🔄</span> Reset Dashboard
+                    </button>
+                    <button id="downloadReportBtn" class="btn btn-accent" disabled>
+                        <span>📥</span> Download Report
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISUAL NETWORK SIMULATOR CANVAS -->
+        <section class="card network-visualization">
+            <div class="panel-header">
+                <h2>2. Interactive Host-to-Host Network Canvas</h2>
+                <span id="overallStatus" class="status-pill state-closed">STATUS: IDLE</span>
+            </div>
+
+            <div class="topology-grid">
+                <!-- COMPUTER A -->
+                <div class="host-card" id="hostA">
+                    <div class="host-icon">💻</div>
+                    <h3>Computer A</h3>
+                    <p class="role">TCP Client (Initiator)</p>
+                    <div class="ip-info">IP: 192.168.1.100</div>
+                    <div class="state-box">
+                        State: <span id="stateA" class="state-badge">CLOSED</span>
+                    </div>
+                </div>
+
+                <!-- NETWORK PATH & ANIMATED PACKET CONTAINER -->
+                <div class="network-path" id="networkPath">
+                    <div class="wire-line"></div>
+                    <div class="wire-label">TCP/IP Network Channel</div>
+                    
+                    <!-- Dynamic Animated Packet -->
+                    <div id="animatedPacket" class="packet hidden">
+                        <span id="packetLabel">SYN</span>
+                    </div>
+
+                    <div id="dropIndicator" class="drop-indicator hidden">
+                        ❌ PACKET DROPPED
+                    </div>
+                </div>
+
+                <!-- COMPUTER B -->
+                <div class="host-card" id="hostB">
+                    <div class="host-icon">🖥️</div>
+                    <h3>Computer B</h3>
+                    <p class="role">TCP Server (Receiver)</p>
+                    <div class="ip-info">IP: 192.168.1.200 : Port 8080</div>
+                    <div class="state-box">
+                        State: <span id="stateB" class="state-badge">LISTEN</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- METRICS & COMPARISON GRID -->
+        <div class="two-col-grid">
+            
+            <!-- PACKET STATISTICS -->
+            <section class="card stats-card">
+                <h3>📊 Packet Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">Packets Sent</span>
+                        <span id="statSent" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Packets Received</span>
+                        <span id="statRecv" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Packets Dropped</span>
+                        <span id="statDrop" class="stat-value danger-text">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Retransmissions</span>
+                        <span id="statRetrans" class="stat-value warning-text">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Packet Loss Rate</span>
+                        <span id="statLoss" class="stat-value">0.0%</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Duration (ms)</span>
+                        <span id="statDuration" class="stat-value">0 ms</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BASELINE COMPARISON -->
+            <section class="card comparison-card">
+                <h3>⚖️ Baseline vs. Scenario Comparison</h3>
+                <div class="comparison-details" id="comparisonContent">
+                    <p class="placeholder-text">Run a simulation to view comparative analysis against a standard 3-way handshake.</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- SMART FAILURE DIAGNOSIS PANEL -->
+        <section class="card diagnosis-card">
+            <div class="panel-header">
+                <h2>🔍 Smart Failure Diagnosis Engine</h2>
+                <span class="sub-tag">Rule-Based Analysis</span>
+            </div>
+
+            <div id="diagnosisContainer" class="diagnosis-content">
+                <div class="diagnosis-section">
+                    <h4>Primary Failure Point</h4>
+                    <p id="diagPoint" class="highlight-text">Run a simulation to analyze results.</p>
+                </div>
+
+                <div class="diagnosis-grid">
+                    <div class="diag-block">
+                        <h4>Observed Evidence</h4>
+                        <ul id="diagEvidence" class="diag-list">
+                            <li>Awaiting simulation execution...</li>
+                        </ul>
+                    </div>
+                    <div class="diag-block">
+                        <h4>Possible Real-World Causes</h4>
+                        <ul id="diagCauses" class="diag-list">
+                            <li>Awaiting simulation execution...</li>
+                        </ul>
+                    </div>
+                    <div class="diag-block">
+                        <h4>Suggested Troubleshooting Steps</h4>
+                        <ul id="diagSteps" class="diag-list">
+                            <li>Awaiting simulation execution...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVENT TIMELINE LOG -->
+        <section class="card timeline-card">
+            <div class="panel-header">
+                <h2>📜 Execution Timeline & Packet Trace Log</h2>
+                <button id="clearLogBtn" class="btn btn-sm">Clear Log</button>
+            </div>
+            
+            <div id="timelineLog" class="timeline-log">
+                <div class="timeline-item placeholder">
+                    <span class="time">--:--</span>
+                    <span class="text">No simulation events recorded yet. Click "Run Simulation" above.</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>TCP Connection Problem Simulator & Failure Analyzer | Computer Networks Mini Project</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
